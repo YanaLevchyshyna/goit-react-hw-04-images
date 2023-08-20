@@ -1,16 +1,21 @@
-export const App = () => {
+import { useState } from 'react';
+import { ToastContainer } from 'react-toastify';
+import Searchbar from './Searchbar/Searchbar';
+import ImageGallery from './ImageGallery/ImageGallery';
+
+export default function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSubmit = searchQuery => {
+    // console.log(searchQuery);
+    setSearchQuery(searchQuery);
+  };
+
   return (
-    <div
-      style={{
-        height: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        fontSize: 40,
-        color: '#010101'
-      }}
-    >
-      React homework template
+    <div>
+      <Searchbar onSubmit={handleSubmit} />
+      <ImageGallery value={searchQuery} />
+      <ToastContainer autoClose={3000} />
     </div>
   );
-};
+}
