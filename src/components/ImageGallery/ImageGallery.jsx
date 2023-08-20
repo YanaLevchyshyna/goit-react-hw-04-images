@@ -25,6 +25,7 @@ export default function ImageGallery({ value }) {
   const [error, setError] = useState(null);
   const [status, setStatus] = useState(Status.IDLE);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const [totalPages, setTotalPages] = useState(0); // Зберігає загальну кількість сторінок
 
   useEffect(() => {
@@ -33,32 +34,42 @@ export default function ImageGallery({ value }) {
     }
     // якщо searchQuery введено новий то завантажуємо зображення з першої сторінки,
     // а попередній масив зображень очищаємо
-    if (currentPage === 1) {
+    if (searchQuery !== value) {
+      console.log('searchQuery-->', searchQuery);
+      console.log('value-->', value);
       setImages([]);
+      setCurrentPage(1);
+      setSearchQuery(value);
     }
 
     setStatus(Status.PENDING);
 
-    imagesApi
-      .fetchImages(value, currentPage)
-      .then(({ hits, totalHits }) => {
-        console.log('------>', hits);
-
-        setImages(prevState => [...prevState, ...hits]);
-        setTotalPages(Math.floor(totalHits / 12));
-        setStatus(Status.RESOLVED);
+    const fetchData = async () => {
+      try {
+        const { hits, totalHits } = await imagesApi.fetchImages(
+          value,
+          currentPage
+        );
 
         if (totalHits === 0) {
           throw new Error(
             `Sorry, there are no images ${value} matching your search query. Please try again.`
           );
         }
-      })
-      .catch(error => {
+
+        setImages(prevImages =>
+          currentPage === 1 ? hits : [...prevImages, ...hits]
+        );
+        setTotalPages(Math.floor(totalHits / 12));
+        setStatus(Status.RESOLVED);
+      } catch (error) {
         setError(error);
         setStatus(Status.REJECTED);
-      });
-  }, [currentPage, value]);
+      }
+    };
+
+    fetchData();
+  }, [currentPage, searchQuery, value]);
 
   const onLoadMoreClick = () => {
     setCurrentPage(prevPage => prevPage + 1);
